@@ -16,6 +16,7 @@ from network.models import create_model
 import torch.optim as optim
 import logging
 import logging.config
+from lib.utils import AverageMeter,accuracy,adjust_learning_rate
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
 
 parser = argparse.ArgumentParser(description='classification')
@@ -28,9 +29,9 @@ parser.add_argument('--data_path', default="/data/glusterfs_cv_04/public_data/im
                     help='the test image of target domain ')
 parser.add_argument('--save_path', default="/data/glusterfs_cv_04/11121171/AAAI_NL/Baseline_classification/classification/model_save", type=str,
                     help='save model')
-parser.add_argument('--Backbone', type=str, default="efficientnet-b0", help='FeatureExtraction stage. '
+parser.add_argument('--Backbone', type=str, default="ResNet50", help='FeatureExtraction stage. '
                                                                      'ResNet18|ResNet34|ResNet50'
-                                                                     'MobileNet_v1|MobileNet_v2'
+                                                                     'MobileNet_v1|MobileNet_v2|Mobilenetv3'
                                                                      'VGG11|VGG16|VGG19'
                                                                      'efficientnet-b0|efficientnet-b1'
                                                                       'shufflenet_v2_x0_5| shufflenet_v2_x1_0')
@@ -42,7 +43,7 @@ parser.add_argument('--manualSeed', type=int, default=1111, help='for random see
 # Training strategy
 parser.add_argument('--epoch_iter', default=8000, type = int,
                     help='the max epoch iter')
-parser.add_argument('--batch_size', default=400, type = int,
+parser.add_argument('--batch_size', default=128, type = int,
                     help='batch size of training')
 parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
                     help='initial learning rate')
@@ -108,6 +109,7 @@ def train(opt):
                 epoch + 1, opt.epoch_iter, i + 1, int(len(data_loader)), time.time() - start_time, loss.item()))
 
         if epoch > 1:
+            validate(data_loader_val, model, CEloss)
             best_acc = test(epoch, model, data_loader_val, best_acc)
             model.train()
         logging.info("----------------------------------------------------------")
@@ -117,6 +119,49 @@ def train(opt):
 
         logging.info('epoch_loss is {:.8f}, epoch_time is {:.8f}'.format(epoch_loss / int(len(data_loader)),time.time() - epoch_time))
         logging.info(time.asctime(time.localtime(time.time())))
+
+def validate(val_loader, model, criterion):
+    batch_time = AverageMeter()
+    losses = AverageMeter()
+    top1 = AverageMeter()
+    top5 = AverageMeter()
+
+    # switch to evaluate mode
+    model.eval()
+
+    end = time.time()
+    for i, (input, target) in enumerate(val_loader):
+        target = target.cuda()
+        input = input.cuda()
+        with torch.no_grad():
+            # compute output
+            output = model(input)
+            loss = criterion(output, target)
+
+            # measure accuracy and record loss
+            prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
+            losses.update(loss.item(), input.size(0))
+            top1.update(prec1[0], input.size(0))
+            top5.update(prec5[0], input.size(0))
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            # if i % print_freq == 0:
+            #     print('Test: [{0}/{1}]\t'
+            #           'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+            #           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
+            #           'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
+            #           'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
+            #         i, len(val_loader), batch_time=batch_time, loss=losses,
+            #         top1=top1, top5=top5))
+
+    logging.info("    ---------------------------------------------------------------")
+    logging.info(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
+
+    return top1.avg, top5.avg
+
 
 def test(epoch,  model,val_loader,best_acc):
     model.eval()
@@ -149,7 +194,7 @@ if __name__ == '__main__':
         opt.exp_name += f'-Seed{opt.manualSeed}'
         # print(opt.exp_name)
 
-    os.makedirs(f'./workspace/{opt.exp_name}', exist_ok=True)
+    os.makedirs(f'/data/glusterfs_cv_04/11121171/AAAI_NL/Baseline_classification/classification/workspace/{opt.exp_name}', exist_ok=True)
 
     # 通过下面的方式进行简单配置输出方式与日志级别
     logging.basicConfig(

@@ -59,6 +59,11 @@ class BaseDataset(data.Dataset):
 
         if self.dataset == "ImageNet":
             image = Image.open(image_path).convert('RGB')
+        elif self.dataset == "OpenImage":
+            try:
+                image = Image.open(image_path).convert('RGB')
+            except:
+                return self.pull_item(index+1)
         else:
             image = Image.fromarray(image_path)
 

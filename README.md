@@ -79,7 +79,7 @@ All models are trained in the same condition, and might not get the best result
 |cifar10|vgg11|128.80|7.613|90.02|-|
 |cifar10|vgg11_bn|128.80|272.520|90.22|-|
 |cifar10|ResNet-18|37.119|11.182|92.1|-|
-|cifar10|ResNet-32|75.426|21.798|93.75|-|
+|cifar10|ResNet-34|75.426|21.798|93.75|-|
 |cifar10|ResNet-50|83.889|23.529|93.14|-|
 |cifar10|ResNeXt29(32x4d)|4.774|779.626|93.76|-|
 |cifar10|ResNeXt29(2x64d)|9.129|1417|93.83|-|
@@ -93,11 +93,29 @@ All models are trained in the same condition, and might not get the best result
 |cifar10| Efficientnet-b1|0.073|0.387|94.68|-|
 |cifar10| Efficientnet-b2|0.079|19.669|94.52|-|
 |cifar10| Efficientnet-b3|0.102|26.065|-|-|
+
+|dataset|network|Params(M)|Flops(M)|Top-1(%)|Top-5(%)|
 |:---:|:---:|:---:|:---:|:---:|:---:|
+|cifar100| ResNet-18|37.119|11.182|74.56|92.45|
+|cifar100|ResNet-34|75.426|21.798|74.91|92.73|
+|cifar100|ResNet-50|83.889|23.529|73.04|91.48|
+|cifar100|ResNet-101|-|-|78.23|93.90|
+|cifar100|densenet121|7.979|2866|77.35|93.82|
+|cifar100|shufflenet_v2_x0_5|0.344|0.817|69.02|90.50|
+|cifar100|shufflenet_v2_x1_0|1.264|3.026|93.20|92.09|
+|cifar100|shufflenet_v2_x1_5|2.489|300.281|74.29|92.53|
+|cifar100|MobileNet_v2|6.398|2.237|74.72|92.60|
+|cifar100|MobileNet_v3|-|-|75.30|94.12|
 |cifar100| Efficientnet-b0|0.054|0.284|76.77|-|
 |cifar100| Efficientnet-b1|0.073|0.387|76.420|-|
 |cifar100| Efficientnet-b2|0.079|19.669|77.25|-|
+|cifar100| Efficientnet-b7|-|-|77.64|93.26|
+
+|dataset|network|Params(M)|Flops(M)|Top-1(%)|Top-5(%)|
 |:---:|:---:|:---:|:---:|:---:|:---:|
+|ImageNet| ResNet-18|-|-|68.99|87.604|
+|ImageNet| ResNet-34|-|-|73.71|90.21|
+|ImageNet| MobileNet_v3|-|-|62.496|84.68|
 |ImageNet| Efficientnet-b0|1.343|1.664|73.194|-|
 
 More experiment results coming soon

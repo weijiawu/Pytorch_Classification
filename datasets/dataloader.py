@@ -46,6 +46,25 @@ class Dateloader(BaseDataset):
                 self.root = os.path.join(self.root, "val")
             self.classes, self.class_to_idx = self.find_classes(self.root)
             self.images, self.gt = self.make_dataset(self.root, self.class_to_idx, extensions=self.IMG_EXTENSIONS)
+
+        elif self.dataset == "OpenImage":
+            train_list = os.listdir(os.path.join(self.root,"train","clean"))
+            val_list = os.listdir(os.path.join(self.root, "val"))
+            class_list = list(
+                set(train_list).intersection(val_list))
+            if self.mode == "train":
+                self.root = os.path.join(self.root,"train","clean")
+            else:
+                self.root = os.path.join(self.root, "val")
+
+            classes = [
+                d for d in os.listdir(self.root) if d in class_list
+            ]
+            classes.sort()
+            class_to_idx = {classes[i]: i for i in range(1100)}
+
+            self.images, self.gt = self.make_dataset_openimage(self.root, class_to_idx, extensions=self.IMG_EXTENSIONS)
+            print("image,gt:",len(self.images),len(self.gt))
         elif self.dataset == "CIFAR10":
             if self.mode == "train":
                 for n in range(1, 6):
@@ -82,6 +101,40 @@ class Dateloader(BaseDataset):
         else:
             print("improper dataset")
             raise NameError
+
+    def make_dataset_openimage(self,root, class_to_idx, extensions):
+        """Make dataset by walking all images under a root.
+
+        Args:
+            root (string): root directory of folders
+            class_to_idx (dict): the map from class name to class idx
+            extensions (tuple): allowed extensions
+
+        Returns:
+            images (list): a list of tuple where each element is (image, label)
+        """
+        images = []
+        gt = []
+        root = os.path.expanduser(root)
+        for class_name in sorted(os.listdir(root)):
+            if class_name not in class_to_idx:
+                continue
+            _dir = os.path.join(root, class_name)
+            if not os.path.isdir(_dir):
+                continue
+
+            for _, _, fns in sorted(os.walk(_dir)):
+                num = 0
+                for fn in sorted(fns):
+                    num = num+1
+                    if has_file_allowed_extension(fn, extensions):
+                        path = os.path.join(root,class_name, fn)
+                        images.append(path)
+                        gt.append(class_to_idx[class_name])
+                    # if num>300:
+                    #     break
+                break
+        return images,gt
 
     def make_dataset(self,root, class_to_idx, extensions):
         """Make dataset by walking all images under a root.

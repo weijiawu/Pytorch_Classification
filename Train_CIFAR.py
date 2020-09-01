@@ -29,12 +29,12 @@ parser.add_argument('--data_path', default="/data/glusterfs_cv_04/11121171/data/
                     help='the test image of target domain ')
 parser.add_argument('--save_path', default="/data/glusterfs_cv_04/11121171/AAAI_NL/Baseline_classification/classification/model_save", type=str,
                     help='save model')
-parser.add_argument('--Backbone', type=str, default="Mobilenetv3", help='FeatureExtraction stage. '
-                                                                     'ResNet18|ResNet34|ResNet50'
+parser.add_argument('--Backbone', type=str, default="densenet121", help='FeatureExtraction stage. '
+                                                                     'ResNet18|ResNet34|ResNet50|ResNet101'
                                                                      'MobileNet_v1|MobileNet_v2|Mobilenetv3'
                                                                      'vgg11|vgg16|vgg19'
                                                                      'efficientnet-b0|efficientnet-b1'
-                                                                     'shufflenet_v2_x0_5|shufflenet_v2_x1_0|shufflenet_v2_x1_5'
+                                                                     'shufflenet_v2_x0_5|shufflenet_v2_x1_0|shufflenet_v2_x1_5|shufflenet_v2_x1_5'
                                                                       "inception_v3"
                                                                       "mnasnet0_5|"
                                                                       "densenet121"
@@ -46,9 +46,9 @@ parser.add_argument('--manualSeed', type=int, default=1111, help='for random see
 
 
 # Training strategy
-parser.add_argument('--epoch_iter', default=8000, type = int,
+parser.add_argument('--epoch_iter', default=600, type = int,
                     help='the max epoch iter')
-parser.add_argument('--batch_size', default=256, type = int,
+parser.add_argument('--batch_size', default=32, type = int,
                     help='batch size of training')
 parser.add_argument('--lr', '--learning-rate', default=0.05, type=float,
                     help='initial learning rate')
@@ -93,7 +93,7 @@ def train(opt):
     optimizer = optim.SGD(model.parameters(), lr=opt.lr, momentum=0.9, weight_decay=opt.weight_decay)
     # optimizer = optim.Adam(model.parameters(), lr=opt.lr, weight_decay=opt.weight_decay)
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer,
-                                                        milestones=[80, 130, 160, 200, 230], gamma=0.2)
+                                                        milestones=[100, 200, 300, 400, 500], gamma=0.2)
     CEloss = nn.CrossEntropyLoss().cuda()
 
 
@@ -155,15 +155,6 @@ def validate(val_loader, model, criterion):
             batch_time.update(time.time() - end)
             end = time.time()
 
-            # if i % print_freq == 0:
-            #     print('Test: [{0}/{1}]\t'
-            #           'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-            #           'Loss {loss.val:.4f} ({loss.avg:.4f})\t'
-            #           'Prec@1 {top1.val:.3f} ({top1.avg:.3f})\t'
-            #           'Prec@5 {top5.val:.3f} ({top5.avg:.3f})'.format(
-            #         i, len(val_loader), batch_time=batch_time, loss=losses,
-            #         top1=top1, top5=top5))
-
     logging.info("    ---------------------------------------------------------------")
     logging.info(' * Prec@1 {top1.avg:.3f} Prec@5 {top5.avg:.3f}'.format(top1=top1, top5=top5))
 
@@ -173,11 +164,6 @@ def test(epoch,  model,val_loader,best_acc):
     model.eval()
     correct = 0
     total = 0
-
-    batch_time = AverageMeter()
-    losses = AverageMeter()
-    top1 = AverageMeter()
-    top5 = AverageMeter()
 
     with torch.no_grad():
         for batch_idx, (inputs, targets) in tqdm(enumerate(val_loader)):

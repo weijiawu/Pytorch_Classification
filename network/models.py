@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-from network.resnet import resnet18,resnet34,resnet50
+from network.resnet import resnet18,resnet34,resnet50,resnet101
 from network.mobilenet import mobilenet_v2
-from network.shufflenetv2 import shufflenet_v2_x0_5,shufflenet_v2_x1_0,shufflenet_v2_x1_5
+from network.shufflenetv2 import shufflenet_v2_x0_5,shufflenet_v2_x1_0,shufflenet_v2_x1_5,shufflenet_v2_x2_0
 from thop import profile
 from thop import clever_format
 from network.efficientnet import EfficientNet
@@ -33,6 +33,12 @@ def create_model(Model,num_classes):
         model.fc = nn.Linear(fc_features, num_classes)
         model = model.cuda()
 
+    elif Model == "ResNet101":
+        model = resnet101(pretrained=False).cuda()
+        fc_features = model.fc.in_features
+        model.fc = nn.Linear(fc_features, num_classes)
+        model = model.cuda()
+
     elif Model == "MobileNet_v2":
         model = mobilenet_v2(num_classes = num_classes,pretrained=False).cuda()
 
@@ -47,6 +53,9 @@ def create_model(Model,num_classes):
 
     elif Model == "shufflenet_v2_x1_5":
         model = shufflenet_v2_x1_5(pretrained=False,num_classes = num_classes).cuda()
+
+    elif Model == "shufflenet_v2_x1_5":
+        model = shufflenet_v2_x2_0(pretrained=False,num_classes = num_classes).cuda()
 
     elif "efficientnet" in Model :
         model = EfficientNet.from_pretrained(Model,num_classes=num_classes,pretrained=False).cuda()
